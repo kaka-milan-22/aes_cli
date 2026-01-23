@@ -54,3 +54,11 @@ Pull requests are welcome. For major changes, please open an issue first to disc
    结论：
 
    对于普通使用场景，这个加密工具是安全的。暴力破解Fernet加密在计算上不可行。但需要妥善保管密钥，并且注意密钥应该使用genkey命令生成，而不是手动输入弱密码。
+
+   主要改动：
+
+     - 新增 get_key() 函数 - 自动从命令行参数或环境变量 ENCIPHERR_KEY 获取密钥
+     - 参数调整 - 将 key 改为可选参数 -k/--key，不再是必需的位置参数
+     - 使用方式更灵活 - 两种方式均可：
+       - 环境变量：export ENCIPHERR_KEY="your_key"
+       - 命令行参数：-k your_key
