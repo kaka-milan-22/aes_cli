@@ -2,7 +2,7 @@
 
 Encipherr-CLI es una herramienta local de cifrado/descifrado para terminal.
 
-[English README](README.md)
+[English README](../README.md)
 
 ## Caracteristicas
 - Cifrado autenticado AES-256-GCM

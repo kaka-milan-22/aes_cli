@@ -2,7 +2,7 @@
 
 Encipherr-CLI 是一个用于终端环境的本地加密/解密工具。
 
-[English README](README.md)
+[English README](../README.md)
 
 ## 功能特性
 - 使用 AES-256-GCM 进行认证加密

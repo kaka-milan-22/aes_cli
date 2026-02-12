@@ -2,7 +2,7 @@
 
 Encipherr-CLI ist ein lokales Verschluesselungs-/Entschluesselungs-Tool fuer die Konsole.
 
-[English README](README.md)
+[English README](../README.md)
 
 ## Funktionen
 - Authentifizierte AES-256-GCM-Verschluesselung
