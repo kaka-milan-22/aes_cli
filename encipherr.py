@@ -11,26 +11,22 @@
 import argparse
 import base64
 import binascii
-import hashlib
 import os
 import sys
-import fcntl
+import tempfile
 from cryptography.exceptions import InvalidTag
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 def get_key(args):
-    """Get encryption key from args or environment variable."""
-    if args.key:
-        return args.key.encode() if isinstance(args.key, str) else args.key
-    
+    """Get encryption key from environment variable only."""
     env_key = os.environ.get('ENCIPHERR_KEY')
     if env_key:
         return env_key.encode() if isinstance(env_key, str) else env_key
     
     print("Error: No encryption key provided!")
     print("Please provide a key via:")
-    print("  1. Command line argument: python3 encipherr.py encrypt TEXT your_text -k your_key")
-    print("  2. Environment variable: export ENCIPHERR_KEY='your_key'")
+    print("  Environment variable only: export ENCIPHERR_KEY='your_key'")
     sys.exit(1)
 
 def decode_key(key):
@@ -75,49 +71,9 @@ def assert_output_not_exists(path):
         print("Error: Output file already exists:", path)
         sys.exit(1)
 
-def nonce_state_path(raw_key):
-    """Return per-key nonce state file path."""
-    key_id = hashlib.sha256(raw_key).hexdigest()[:16]
-    state_dir = os.environ.get("ENCIPHERR_NONCE_DIR", "/tmp")
-    return os.path.join(state_dir, "encipherr_nonce_" + key_id + ".bin")
-
-def next_nonce(raw_key):
-    """
-    Build a 96-bit nonce as 4-byte random prefix + 8-byte counter.
-    Counter is persisted per key to reduce nonce reuse risk across runs.
-    """
-    path = nonce_state_path(raw_key)
-    fd = os.open(path, os.O_RDWR | os.O_CREAT, 0o600)
-    with os.fdopen(fd, "r+b") as state_file:
-        fcntl.flock(state_file.fileno(), fcntl.LOCK_EX)
-        state_file.seek(0)
-        data = state_file.read()
-
-        if len(data) == 12:
-            prefix = data[:4]
-            counter = int.from_bytes(data[4:], "big")
-        else:
-            prefix = os.urandom(4)
-            counter = 0
-
-        nonce = prefix + counter.to_bytes(8, "big")
-        next_counter = (counter + 1) & ((1 << 64) - 1)
-        if next_counter == 0:
-            # Extremely unlikely rollover; rotate prefix defensively.
-            prefix = os.urandom(4)
-
-        state_file.seek(0)
-        state_file.truncate()
-        state_file.write(prefix + next_counter.to_bytes(8, "big"))
-        state_file.flush()
-        os.fsync(state_file.fileno())
-        fcntl.flock(state_file.fileno(), fcntl.LOCK_UN)
-
-    return nonce
-
 def encrypt_bytes(data, raw_key):
     """Encrypt bytes as nonce(12) + ciphertext_and_tag."""
-    nonce = next_nonce(raw_key)
+    nonce = os.urandom(12)
     aesgcm = AESGCM(raw_key)
     ciphertext = aesgcm.encrypt(nonce, data, None)
     return nonce + ciphertext
@@ -131,6 +87,71 @@ def decrypt_bytes(data, raw_key):
     aesgcm = AESGCM(raw_key)
     return aesgcm.decrypt(nonce, ciphertext, None)
 
+def encrypt_file_stream(input_path, output_path, raw_key, chunk_size=1024 * 1024):
+    """Stream-encrypt file as nonce(12) + ciphertext + tag(16)."""
+    nonce = os.urandom(12)
+    encryptor = Cipher(algorithms.AES(raw_key), modes.GCM(nonce)).encryptor()
+
+    out_dir = os.path.dirname(output_path) or "."
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False, dir=out_dir, prefix=".encipherr_tmp_") as tmp_file:
+            tmp_path = tmp_file.name
+            with open(input_path, "rb") as in_file:
+                tmp_file.write(nonce)
+                while True:
+                    chunk = in_file.read(chunk_size)
+                    if not chunk:
+                        break
+                    tmp_file.write(encryptor.update(chunk))
+                tmp_file.write(encryptor.finalize())
+                tmp_file.write(encryptor.tag)
+                tmp_file.flush()
+                os.fsync(tmp_file.fileno())
+        os.replace(tmp_path, output_path)
+    except Exception:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        raise
+
+def decrypt_file_stream(input_path, output_path, raw_key, chunk_size=1024 * 1024):
+    """Stream-decrypt file encoded as nonce(12) + ciphertext + tag(16)."""
+    total_size = os.path.getsize(input_path)
+    min_size = 12 + 16
+    if total_size < min_size:
+        raise ValueError("Cipher file is too short.")
+
+    out_dir = os.path.dirname(output_path) or "."
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False, dir=out_dir, prefix=".encipherr_tmp_") as tmp_file:
+            tmp_path = tmp_file.name
+            with open(input_path, "rb") as in_file:
+                nonce = in_file.read(12)
+                in_file.seek(total_size - 16)
+                tag = in_file.read(16)
+                in_file.seek(12)
+
+                decryptor = Cipher(algorithms.AES(raw_key), modes.GCM(nonce, tag)).decryptor()
+                remaining = total_size - 12 - 16
+
+                while remaining > 0:
+                    to_read = chunk_size if remaining > chunk_size else remaining
+                    chunk = in_file.read(to_read)
+                    if not chunk:
+                        break
+                    tmp_file.write(decryptor.update(chunk))
+                    remaining -= len(chunk)
+
+                tmp_file.write(decryptor.finalize())
+                tmp_file.flush()
+                os.fsync(tmp_file.fileno())
+        os.replace(tmp_path, output_path)
+    except Exception:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        raise
+
 def Encrypt(args):
     key = get_key(args)
     if args.mode in ['file','FILE']:
@@ -140,17 +161,14 @@ def Encrypt(args):
             print("specified path:",path)
             
             if is_valid_file(path):
-                with open(path,'rb') as f:
-                    data = f.read()
+                pass
             else:
                 print("Error in provided path !") 
                 sys.exit(1)       
             
             output_path = encrypted_output_path(path)
             assert_output_not_exists(output_path)
-            encryptedfile = encrypt_bytes(data, raw_key)
-            with open(output_path,'wb') as f:
-                f.write(encryptedfile)
+            encrypt_file_stream(path, output_path, raw_key)
             print("the file at ",path," is encrypted")
             print("encrypted output:", output_path)
         except ValueError:
@@ -171,10 +189,9 @@ def Encrypt(args):
             plaintext = value.encode()
             encryptedtext = encrypt_bytes(plaintext, raw_key)
             encoded = base64.urlsafe_b64encode(encryptedtext).decode()
-            print()
-            print('-'*5,"Encrypted text",'-'*5)
-            print()
+            print("----- Encrypted start -----")
             print(encoded)
+            print("----- Encrypted end -----")
         except ValueError:
             print("Error: Invalid encryption key format. Use genkey output (base64 32-byte key).")
             sys.exit(1)
@@ -191,17 +208,14 @@ def Decrypt(args):
             print("specified path:",path)
             
             if is_valid_file(path):
-                with open(path,'rb') as f:
-                    data = f.read()
+                pass
             else:
                 print("Error in provided path !") 
                 sys.exit(1)
             
             output_path = decrypted_output_path(path)
             assert_output_not_exists(output_path)
-            decryptedfile = decrypt_bytes(data, raw_key)
-            with open(output_path,'wb') as f:
-                f.write(decryptedfile)
+            decrypt_file_stream(path, output_path, raw_key)
             print("the file at ",path," is decrypted")
             print("decrypted output:", output_path)
         except ValueError:
@@ -226,9 +240,7 @@ def Decrypt(args):
             token = value.encode()
             cipher_bytes = base64.urlsafe_b64decode(token)
             decryptedtext = decrypt_bytes(cipher_bytes, raw_key)
-            print()
             print('-'*5,"decrypted text",'-'*5)
-            print()
             print(decryptedtext.decode())
         except ValueError:
             print("Error: Invalid input format. Key or cipher text is invalid.")
@@ -245,7 +257,7 @@ def Decrypt(args):
 
 
 parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,description="Encipherr-CLI 1.0.0 (https://github.com/Oussama1403/Encipherr-CLI)",
-epilog='Exemple:\n\n python3 encipherr.py genkey\n export ENCIPHERR_KEY="your_generated_key"\n python3 encipherr.py encrypt TEXT encipherr is awesome!\n ---or with key argument---\n python3 encipherr.py encrypt TEXT "hello world" -k ueVEtmfzr8d...\n python3 encipherr.py decrypt FILE path/to/file -k ueVEtmfzr8d...\n\nan issue or a feature request ? contribute to the development of Encipherr-cli https://github.com/Oussama1403/Encipherr-CLI:)')
+epilog='Exemple:\n\n python3 encipherr.py genkey\n export ENCIPHERR_KEY="your_generated_key"\n python3 encipherr.py encrypt TEXT encipherr is awesome!\n python3 encipherr.py decrypt FILE path/to/file.enc\n\nan issue or a feature request ? contribute to the development of Encipherr-cli https://github.com/Oussama1403/Encipherr-CLI:)')
 subparsers = parser.add_subparsers()
 
 GenKey_parser = subparsers.add_parser('genkey',help="Generate a random key for encrypting/decrypting.")
@@ -254,14 +266,12 @@ GenKey_parser.set_defaults(func=GenKey)
 Encrypt_parser = subparsers.add_parser('encrypt',help="encrypt mode input [key]")
 Encrypt_parser.add_argument('mode',type=str,choices=['text','TEXT','file','FILE'],help="TEXT or FILE")
 Encrypt_parser.add_argument('input',type=str,nargs="+",help="A text if in text mode or path/to/file if in file mode")
-Encrypt_parser.add_argument('-k','--key',type=str,help="your key for encrypting/decrypting (or use ENCIPHERR_KEY env variable)")
 Encrypt_parser.set_defaults(func=Encrypt)
 
 
 Decrypt_parser = subparsers.add_parser('decrypt',help="decrypt mode input [key]")
 Decrypt_parser.add_argument('mode',type=str,choices=['text','TEXT','file','FILE'],help="TEXT or FILE")
 Decrypt_parser.add_argument('input',type=str,nargs="+",help="A text if in text mode or path/to/file if in file mode")
-Decrypt_parser.add_argument('-k','--key',type=str,help="your key for encrypting/decrypting (or use ENCIPHERR_KEY env variable)")
 Decrypt_parser.set_defaults(func=Decrypt)
 
 if __name__ == '__main__':

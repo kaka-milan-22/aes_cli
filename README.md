@@ -5,7 +5,7 @@ Encipherr-CLI is a local encryption/decryption tool for terminal usage.
 ## Features
 - AES-256-GCM authenticated encryption
 - Text and file encryption/decryption
-- Key via environment variable (`ENCIPHERR_KEY`) or `-k/--key`
+- Key via environment variable (`ENCIPHERR_KEY`) only
 - File encryption writes a new `.enc` file (does not overwrite original)
 - File decryption writes a new output file (auto-fallback to `.dec` when needed)
 - Clear error messages for invalid key/cipher data
@@ -75,23 +75,22 @@ python3 encipherr.py decrypt -h
 ## CLI Syntax
 ```bash
 python3 encipherr.py genkey
-python3 encipherr.py encrypt {text|file} <input...> [-k KEY]
-python3 encipherr.py decrypt {text|file} <input...> [-k KEY]
+python3 encipherr.py encrypt {text|file} <input...>
+python3 encipherr.py decrypt {text|file} <input...>
 ```
 
 ## Security Notes
 - Use `genkey` output directly. Key must be URL-safe Base64 and decode to 32 bytes.
 - Do not store key in shell history, screenshots, or public logs.
-- Prefer `ENCIPHERR_KEY` over `-k` to reduce exposure in process list/history.
+- This version intentionally does not support `-k/--key`.
 - Keep encrypted files and keys in separate secure locations.
 
 ## Nonce Strategy
 For AES-GCM, nonce uniqueness per key is critical.
 
 This CLI uses:
-- 12-byte nonce format: `4-byte random prefix + 8-byte counter`
-- Per-key persisted counter state file (default in `/tmp`)
-- File locking to reduce collision risk across concurrent processes
+- 12-byte cryptographically secure random nonce (`os.urandom(12)`)
+- No local nonce state files
 
 ## Compatibility Notice
 This version uses AES-256-GCM format and is not compatible with older Fernet ciphertexts.
