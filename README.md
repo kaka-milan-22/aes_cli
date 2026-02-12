@@ -18,7 +18,7 @@ Encipherr-CLI is a local encryption/decryption tool for terminal usage.
 
 ## Install
 ```bash
-pip install cryptography
+pip install -r requirements.txt
 ```
 
 ## Quick Start

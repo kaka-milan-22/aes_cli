@@ -18,7 +18,7 @@ Encipherr-CLI 是一个用于终端环境的本地加密/解密工具。
 
 ## 安装
 ```bash
-pip install cryptography
+pip install -r requirements.txt
 ```
 
 ## 快速开始
