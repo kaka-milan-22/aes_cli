@@ -70,6 +70,7 @@ Result:
 ## Command Help
 ```bash
 python3 encipherr.py -h
+python3 encipherr.py --version
 python3 encipherr.py encrypt -h
 python3 encipherr.py decrypt -h
 ```
@@ -79,6 +80,11 @@ python3 encipherr.py decrypt -h
 python3 encipherr.py genkey
 python3 encipherr.py encrypt {text|file} <input...>
 python3 encipherr.py decrypt {text|file} <input...>
+```
+
+## Self Test
+```bash
+bash scripts/selftest.sh
 ```
 
 ## Security Notes

@@ -18,6 +18,8 @@ from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
+VERSION = "1.1.0"
+
 def get_key(args):
     """Get encryption key from environment variable only."""
     env_key = os.environ.get('ENCIPHERR_KEY')
@@ -256,20 +258,21 @@ def Decrypt(args):
             sys.exit(1)
 
 
-parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,description="Encipherr-CLI 1.0.0 (https://github.com/Oussama1403/Encipherr-CLI)",
+parser = argparse.ArgumentParser(formatter_class=argparse.RawDescriptionHelpFormatter,description=f"Encipherr-CLI {VERSION} (https://github.com/Oussama1403/Encipherr-CLI)",
 epilog='Exemple:\n\n python3 encipherr.py genkey\n export ENCIPHERR_KEY="your_generated_key"\n python3 encipherr.py encrypt TEXT encipherr is awesome!\n python3 encipherr.py decrypt FILE path/to/file.enc\n\nan issue or a feature request ? contribute to the development of Encipherr-cli https://github.com/Oussama1403/Encipherr-CLI:)')
+parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
 subparsers = parser.add_subparsers()
 
 GenKey_parser = subparsers.add_parser('genkey',help="Generate a random key for encrypting/decrypting.")
 GenKey_parser.set_defaults(func=GenKey)
  
-Encrypt_parser = subparsers.add_parser('encrypt',help="encrypt mode input [key]")
+Encrypt_parser = subparsers.add_parser('encrypt',help="encrypt mode input")
 Encrypt_parser.add_argument('mode',type=str,choices=['text','TEXT','file','FILE'],help="TEXT or FILE")
 Encrypt_parser.add_argument('input',type=str,nargs="+",help="A text if in text mode or path/to/file if in file mode")
 Encrypt_parser.set_defaults(func=Encrypt)
 
 
-Decrypt_parser = subparsers.add_parser('decrypt',help="decrypt mode input [key]")
+Decrypt_parser = subparsers.add_parser('decrypt',help="decrypt mode input")
 Decrypt_parser.add_argument('mode',type=str,choices=['text','TEXT','file','FILE'],help="TEXT or FILE")
 Decrypt_parser.add_argument('input',type=str,nargs="+",help="A text if in text mode or path/to/file if in file mode")
 Decrypt_parser.set_defaults(func=Decrypt)

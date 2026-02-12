@@ -70,6 +70,7 @@ python3 encipherr.py decrypt file /path/to/data.txt.enc
 ## 命令帮助
 ```bash
 python3 encipherr.py -h
+python3 encipherr.py --version
 python3 encipherr.py encrypt -h
 python3 encipherr.py decrypt -h
 ```
@@ -79,6 +80,11 @@ python3 encipherr.py decrypt -h
 python3 encipherr.py genkey
 python3 encipherr.py encrypt {text|file} <input...>
 python3 encipherr.py decrypt {text|file} <input...>
+```
+
+## 自测脚本
+```bash
+bash scripts/selftest.sh
 ```
 
 ## 安全说明
