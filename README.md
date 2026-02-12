@@ -2,7 +2,14 @@
 
 Encipherr-CLI is a local encryption/decryption tool for terminal usage.
 
-[中文文档](README.zh-CN.md)
+## Languages
+Default: 🇬🇧 English (`README.md`)
+
+- 🇨🇳 Chinese: [README.zh-CN.md](README.zh-CN.md)
+- 🇪🇸 Spanish: [README.es.md](README.es.md)
+- 🇮🇹 Italian: [README.it.md](README.it.md)
+- 🇩🇪 German: [README.de.md](README.de.md)
+- 🇫🇷 French: [README.fr.md](README.fr.md)
 
 ## Features
 - AES-256-GCM authenticated encryption
