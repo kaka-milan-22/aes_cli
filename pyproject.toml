@@ -1,0 +1,18 @@
+[project]
+name = "encipherr-cli"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13.11"
+dependencies = [
+    "cryptography==46.0.3",
+]
+[project.scripts]
+encipherr = "encipherr:main"
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+py-modules = ["encipherr"]
