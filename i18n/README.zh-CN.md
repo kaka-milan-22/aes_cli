@@ -19,14 +19,30 @@ Encipherr-CLI 是一个用于终端环境的本地加密/解密工具。
 - `cryptography` 包
 
 ## 安装
+
+**推荐（全局 CLI 工具）：**
+```bash
+pip install encipherr-cli
+```
+
+或使用 [uv](https://github.com/astral-sh/uv)：
+```bash
+uv tool install encipherr-cli
+```
+
+<details>
+<summary>从源码运行（开发用）</summary>
+
 ```bash
 pip install -r requirements.txt
+python3 encipherr.py ...
 ```
+</details>
 
 ## 快速开始
 ### 1. 生成密钥
 ```bash
-python3 encipherr.py genkey
+encipherr genkey
 ```
 
 示例输出：
@@ -42,18 +58,18 @@ export ENCIPHERR_KEY="sPWlTYYiVpxOzY-7qvFX5EIBP3HfNNpwMkPXRkVjXV4="
 
 ### 3. 加密文本
 ```bash
-python3 encipherr.py encrypt text "hello world"
+encipherr encrypt text "hello world"
 ```
 
 ### 4. 解密文本
 ```bash
-python3 encipherr.py decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
+encipherr decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
 ```
 
 ## 文件用法
 ### 加密文件
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt
+encipherr encrypt file /path/to/data.txt
 ```
 
 结果：
@@ -62,7 +78,7 @@ python3 encipherr.py encrypt file /path/to/data.txt
 
 ### 解密文件
 ```bash
-python3 encipherr.py decrypt file /path/to/data.txt.enc
+encipherr decrypt file /path/to/data.txt.enc
 ```
 
 结果：
@@ -72,37 +88,37 @@ python3 encipherr.py decrypt file /path/to/data.txt.enc
 ### 强制覆盖已存在的输出文件
 使用 `--overwrite` 参数，输出文件已存在时直接覆盖，而不是报错退出：
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt --overwrite
-python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+encipherr encrypt file /path/to/data.txt --overwrite
+encipherr decrypt file /path/to/data.txt.enc --overwrite
 ```
 
 ### 指定输出路径（`--output` / `-o`）
 使用 `--output PATH`（或 `-o PATH`）可将结果写入指定路径，而非自动推导的文件名。
 若目标路径已存在，命令会报错退出——加上 `--overwrite` 可强制覆盖：
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
+encipherr encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
 ```
 
 **规则：**
-- `--output` 仅在**文件**模式下生效；文本模式中忽略。
+- `--output` 仅在**文件**模式下生效；在文本模式中使用会报错。
 - 若指定 `--output` 且路径已存在，未加 `--overwrite` 时直接报错。
 - `--output` 不影响任何密文结构或密钥处理逻辑。
 
 ## 命令帮助
 ```bash
-python3 encipherr.py -h
-python3 encipherr.py --version
-python3 encipherr.py encrypt -h
-python3 encipherr.py decrypt -h
+encipherr -h
+encipherr --version
+encipherr encrypt -h
+encipherr decrypt -h
 ```
 
 ## CLI 语法
 ```bash
-python3 encipherr.py genkey
-python3 encipherr.py encrypt {text|file} <input...> [--output PATH] [--overwrite]
-python3 encipherr.py decrypt {text|file} <input...> [--output PATH] [--overwrite]
+encipherr genkey
+encipherr encrypt {text|file} <input...> [--output PATH] [--overwrite]
+encipherr decrypt {text|file} <input...> [--output PATH] [--overwrite]
 ```
 
 ## 自测脚本
@@ -115,6 +131,7 @@ bash scripts/selftest.sh
 - 不要把密钥保存到 shell 历史、截图或公开日志中。
 - 当前版本刻意不支持 `-k/--key`。
 - 建议将密钥与加密文件分开保存，并放在受保护位置。
+- 本工具专为本地数据保护设计，不是密钥管理系统。
 
 ## Nonce 策略
 对于 AES-GCM，同一密钥下 nonce 唯一性非常重要。
@@ -122,9 +139,11 @@ bash scripts/selftest.sh
 当前 CLI 采用：
 - 12 字节高强度随机 nonce（`os.urandom(12)`）
 - 不在本地保存 nonce 状态文件
+- Nonce 唯一性完全依赖安全随机数；本工具设计用于本地适度使用，不适用于高频自动化批量加密场景。
 
 ## 兼容性说明
 当前版本使用 AES-256-GCM 格式，不兼容旧版 Fernet 密文。
+本工具保证同一主版本号内生成的密文向后兼容。
 
 ## 许可证
 [MIT](https://choosealicense.com/licenses/mit/)

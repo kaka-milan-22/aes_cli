@@ -18,37 +18,44 @@ Encipherr-CLI es una herramienta local de cifrado/descifrado para terminal.
 - Paquete `cryptography`
 
 ## Instalacion
+
+**Recomendado (herramienta CLI global):**
 ```bash
-pip install -r requirements.txt
+pip install encipherr-cli
+```
+
+o con [uv](https://github.com/astral-sh/uv):
+```bash
+uv tool install encipherr-cli
 ```
 
 ## Inicio rapido
 ```bash
-python3 encipherr.py genkey
+encipherr genkey
 export ENCIPHERR_KEY="YOUR_KEY"
-python3 encipherr.py encrypt text "hello world"
-python3 encipherr.py decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
+encipherr encrypt text "hello world"
+encipherr decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
 ```
 
 ## Uso con archivos
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt
-python3 encipherr.py decrypt file /path/to/data.txt.enc
+encipherr encrypt file /path/to/data.txt
+encipherr decrypt file /path/to/data.txt.enc
 
 # Forzar sobreescritura del archivo de salida existente
-python3 encipherr.py encrypt file /path/to/data.txt --overwrite
-python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+encipherr encrypt file /path/to/data.txt --overwrite
+encipherr decrypt file /path/to/data.txt.enc --overwrite
 
 # Ruta de salida explícita (--output / -o)
-python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
+encipherr encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
 ```
 
 ## Ayuda
 ```bash
-python3 encipherr.py -h
-python3 encipherr.py --version
+encipherr -h
+encipherr --version
 ```
 
 ## Seguridad
@@ -56,3 +63,4 @@ python3 encipherr.py --version
 - No guardes la clave en historial de shell, capturas o logs publicos.
 - Esta version no admite `-k/--key`.
 - Separa las claves de los archivos cifrados.
+- Esta herramienta esta disenada para proteccion de datos local. No es un sistema de gestion de claves.

@@ -18,37 +18,44 @@ Encipherr-CLI e uno strumento locale di cifratura/decifratura per terminale.
 - Pacchetto `cryptography`
 
 ## Installazione
+
+**Consigliato (strumento CLI globale):**
 ```bash
-pip install -r requirements.txt
+pip install encipherr-cli
+```
+
+oppure con [uv](https://github.com/astral-sh/uv):
+```bash
+uv tool install encipherr-cli
 ```
 
 ## Avvio rapido
 ```bash
-python3 encipherr.py genkey
+encipherr genkey
 export ENCIPHERR_KEY="YOUR_KEY"
-python3 encipherr.py encrypt text "hello world"
-python3 encipherr.py decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
+encipherr encrypt text "hello world"
+encipherr decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
 ```
 
 ## Uso file
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt
-python3 encipherr.py decrypt file /path/to/data.txt.enc
+encipherr encrypt file /path/to/data.txt
+encipherr decrypt file /path/to/data.txt.enc
 
 # Sovrascrittura forzata del file di output esistente
-python3 encipherr.py encrypt file /path/to/data.txt --overwrite
-python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+encipherr encrypt file /path/to/data.txt --overwrite
+encipherr decrypt file /path/to/data.txt.enc --overwrite
 
 # Percorso di output esplicito (--output / -o)
-python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
+encipherr encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
 ```
 
 ## Aiuto
 ```bash
-python3 encipherr.py -h
-python3 encipherr.py --version
+encipherr -h
+encipherr --version
 ```
 
 ## Sicurezza
@@ -56,3 +63,4 @@ python3 encipherr.py --version
 - Non salvare la chiave in cronologia shell, screenshot o log pubblici.
 - Questa versione non supporta `-k/--key`.
 - Conserva separati chiavi e file cifrati.
+- Questo strumento e progettato per la protezione dei dati locali. Non e un sistema di gestione delle chiavi.

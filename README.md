@@ -17,19 +17,31 @@ Default: English 🇺🇸
 - `--overwrite` flag to force-overwrite existing output files
 - Clear error messages for invalid key/cipher data
 
-## Requirements
-- Python 3.8+
-- `cryptography` package
-
 ## Install
+
+**Recommended (global CLI tool):**
+```bash
+pip install encipherr-cli
+```
+
+Or with [uv](https://github.com/astral-sh/uv):
+```bash
+uv tool install encipherr-cli
+```
+
+<details>
+<summary>Run from source (development)</summary>
+
 ```bash
 pip install -r requirements.txt
+python3 encipherr.py ...
 ```
+</details>
 
 ## Quick Start
 ### 1. Generate key
 ```bash
-python3 encipherr.py genkey
+encipherr genkey
 ```
 
 Example output:
@@ -45,18 +57,18 @@ export ENCIPHERR_KEY="sPWlTYYiVpxOzY-7qvFX5EIBP3HfNNpwMkPXRkVjXV4="
 
 ### 3. Encrypt text
 ```bash
-python3 encipherr.py encrypt text "hello world"
+encipherr encrypt text "hello world"
 ```
 
 ### 4. Decrypt text
 ```bash
-python3 encipherr.py decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
+encipherr decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
 ```
 
 ## File Usage
 ### Encrypt file
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt
+encipherr encrypt file /path/to/data.txt
 ```
 
 Result:
@@ -65,7 +77,7 @@ Result:
 
 ### Decrypt file
 ```bash
-python3 encipherr.py decrypt file /path/to/data.txt.enc
+encipherr decrypt file /path/to/data.txt.enc
 ```
 
 Result:
@@ -75,37 +87,37 @@ Result:
 ### Force overwrite existing output file
 Use `--overwrite` to overwrite an already-existing output file instead of aborting:
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt --overwrite
-python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+encipherr encrypt file /path/to/data.txt --overwrite
+encipherr decrypt file /path/to/data.txt.enc --overwrite
 ```
 
 ### Explicit output path (`--output` / `-o`)
 Use `--output PATH` (or `-o PATH`) to write the result to a specific path instead of the auto-derived name.
 If the path already exists the command aborts — add `--overwrite` to allow it:
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
+encipherr encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
 ```
 
 **Rules:**
-- `--output` is only honoured in **file** mode; ignored in text mode.
+- `--output` is only valid in **file** mode. Using it in text mode results in an error.
 - If `--output` is set and the path already exists, the command errors unless `--overwrite` is also set.
 - Using `--output` does not change the ciphertext format or key handling in any way.
 
 ## Command Help
 ```bash
-python3 encipherr.py -h
-python3 encipherr.py --version
-python3 encipherr.py encrypt -h
-python3 encipherr.py decrypt -h
+encipherr -h
+encipherr --version
+encipherr encrypt -h
+encipherr decrypt -h
 ```
 
 ## CLI Syntax
 ```bash
-python3 encipherr.py genkey
-python3 encipherr.py encrypt {text|file} <input...> [--output PATH] [--overwrite]
-python3 encipherr.py decrypt {text|file} <input...> [--output PATH] [--overwrite]
+encipherr genkey
+encipherr encrypt {text|file} <input...> [--output PATH] [--overwrite]
+encipherr decrypt {text|file} <input...> [--output PATH] [--overwrite]
 ```
 
 ## Self Test
@@ -118,6 +130,7 @@ bash scripts/selftest.sh
 - Do not store key in shell history, screenshots, or public logs.
 - This version intentionally does not support `-k/--key`.
 - Keep encrypted files and keys in separate secure locations.
+- This tool is designed for local data protection. It is not a key management system.
 
 ## Nonce Strategy
 For AES-GCM, nonce uniqueness per key is critical.
@@ -125,9 +138,11 @@ For AES-GCM, nonce uniqueness per key is critical.
 This CLI uses:
 - 12-byte cryptographically secure random nonce (`os.urandom(12)`)
 - No local nonce state files
+- Nonce uniqueness relies solely on secure randomness; this tool is intended for local and moderate usage, not high-frequency automated batch encryption.
 
 ## Compatibility Notice
 This version uses AES-256-GCM format and is not compatible with older Fernet ciphertexts.
+This tool guarantees backward compatibility for ciphertexts generated within the same major version.
 
 ## License
 [MIT](https://choosealicense.com/licenses/mit/)

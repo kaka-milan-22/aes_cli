@@ -18,37 +18,44 @@ Encipherr-CLI est un outil local de chiffrement/dechiffrement pour le terminal.
 - Package `cryptography`
 
 ## Installation
+
+**Recommande (outil CLI global) :**
 ```bash
-pip install -r requirements.txt
+pip install encipherr-cli
+```
+
+ou avec [uv](https://github.com/astral-sh/uv) :
+```bash
+uv tool install encipherr-cli
 ```
 
 ## Demarrage rapide
 ```bash
-python3 encipherr.py genkey
+encipherr genkey
 export ENCIPHERR_KEY="YOUR_KEY"
-python3 encipherr.py encrypt text "hello world"
-python3 encipherr.py decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
+encipherr encrypt text "hello world"
+encipherr decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
 ```
 
 ## Utilisation fichier
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt
-python3 encipherr.py decrypt file /path/to/data.txt.enc
+encipherr encrypt file /path/to/data.txt
+encipherr decrypt file /path/to/data.txt.enc
 
 # Ecraser de force un fichier de sortie existant
-python3 encipherr.py encrypt file /path/to/data.txt --overwrite
-python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+encipherr encrypt file /path/to/data.txt --overwrite
+encipherr decrypt file /path/to/data.txt.enc --overwrite
 
 # Chemin de sortie explicite (--output / -o)
-python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
+encipherr encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
 ```
 
 ## Aide
 ```bash
-python3 encipherr.py -h
-python3 encipherr.py --version
+encipherr -h
+encipherr --version
 ```
 
 ## Securite
@@ -56,3 +63,4 @@ python3 encipherr.py --version
 - Ne stockez pas la cle dans l'historique shell, les captures ou les logs publics.
 - Cette version ne prend pas en charge `-k/--key`.
 - Conservez separement les cles et les fichiers chiffres.
+- Cet outil est concu pour la protection des donnees locales. Ce n'est pas un systeme de gestion de cles.

@@ -193,6 +193,9 @@ def Encrypt(args):
 
     else:
         try:
+            if args.output:
+                print("Error: --output is only valid in file mode.")
+                sys.exit(1)
             raw_key = decode_key(key)
             #text encryption mode
             value = " ".join(args.input)
@@ -252,6 +255,9 @@ def Decrypt(args):
     
     else:
         try:
+            if args.output:
+                print("Error: --output is only valid in file mode.")
+                sys.exit(1)
             raw_key = decode_key(key)
             #text decryption mode
             value = " ".join(args.input)

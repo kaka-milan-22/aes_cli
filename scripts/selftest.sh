@@ -75,7 +75,24 @@ if python3 encipherr.py encrypt file "$TEST_FILE2" --output "$CUSTOM_ENC" >/dev/
 fi
 echo "      Overwrite guard correctly prevented silent clobber."
 
-echo "[9/9] Cleaning up temporary test artifacts..."
+echo "[9/10] Verifying fixed test vector (format regression guard)..."
+# Pre-computed with key=32×0x00, nonce=12×0x01, plaintext='encipherr-test-vector'
+TV_KEY="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+TV_B64="AQEBAQEBAQEBAQEBEC6gAwrhHY8Qm5DjyFtRH9kGmDR9GrV769vYwQBPVSV/gtC3Iw=="
+TV_ENC_FILE="$(mktemp /tmp/encipherr_tv.XXXXXX.enc)"
+TV_DEC_FILE="$(mktemp -u /tmp/encipherr_tv_dec.XXXXXX)"
+python3 -c "import base64,sys; sys.stdout.buffer.write(base64.b64decode('$TV_B64'))" > "$TV_ENC_FILE"
+ENCIPHERR_KEY="$TV_KEY" python3 encipherr.py decrypt file "$TV_ENC_FILE" --output "$TV_DEC_FILE" >/dev/null
+TV_RESULT="$(cat "$TV_DEC_FILE")"
+if [[ "$TV_RESULT" != "encipherr-test-vector" ]]; then
+  echo "Test vector failed: decrypted content mismatch (format regression?)."
+  rm -f "$TV_ENC_FILE" "$TV_DEC_FILE"
+  exit 1
+fi
+rm -f "$TV_ENC_FILE" "$TV_DEC_FILE"
+echo "      Test vector verified — ciphertext format unchanged."
+
+echo "[10/10] Cleaning up temporary test artifacts..."
 rm -f "$TEST_FILE" "$TEST_FILE.enc" "$TEST_FILE.dec"
 rm -f "$TEST_FILE2" "$CUSTOM_ENC" "$CUSTOM_DEC"
-echo "Self-test passed: text, file, --output, and --overwrite guard checks succeeded."
+echo "Self-test passed: text, file, --output, --overwrite guard, and test vector checks succeeded."

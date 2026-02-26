@@ -18,37 +18,44 @@ Encipherr-CLI ist ein lokales Verschluesselungs-/Entschluesselungs-Tool fuer die
 - Paket `cryptography`
 
 ## Installation
+
+**Empfohlen (globales CLI-Tool):**
 ```bash
-pip install -r requirements.txt
+pip install encipherr-cli
+```
+
+oder mit [uv](https://github.com/astral-sh/uv):
+```bash
+uv tool install encipherr-cli
 ```
 
 ## Schnellstart
 ```bash
-python3 encipherr.py genkey
+encipherr genkey
 export ENCIPHERR_KEY="YOUR_KEY"
-python3 encipherr.py encrypt text "hello world"
-python3 encipherr.py decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
+encipherr encrypt text "hello world"
+encipherr decrypt text "PASTE_BASE64_CIPHERTEXT_HERE"
 ```
 
 ## Datei-Nutzung
 ```bash
-python3 encipherr.py encrypt file /path/to/data.txt
-python3 encipherr.py decrypt file /path/to/data.txt.enc
+encipherr encrypt file /path/to/data.txt
+encipherr decrypt file /path/to/data.txt.enc
 
 # Vorhandene Ausgabedatei erzwungen ueberschreiben
-python3 encipherr.py encrypt file /path/to/data.txt --overwrite
-python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+encipherr encrypt file /path/to/data.txt --overwrite
+encipherr decrypt file /path/to/data.txt.enc --overwrite
 
 # Expliziter Ausgabepfad (--output / -o)
-python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
-python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
+encipherr encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+encipherr decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
 ```
 
 ## Hilfe
 ```bash
-python3 encipherr.py -h
-python3 encipherr.py --version
+encipherr -h
+encipherr --version
 ```
 
 ## Sicherheit
@@ -56,3 +63,4 @@ python3 encipherr.py --version
 - Schluessel nicht in Shell-Historie, Screenshots oder oeffentlichen Logs speichern.
 - Diese Version unterstuetzt bewusst kein `-k/--key`.
 - Schluessel und verschluesselte Dateien getrennt aufbewahren.
+- Dieses Tool ist fuer lokalen Datenschutz konzipiert, kein Schluessel-Management-System.
