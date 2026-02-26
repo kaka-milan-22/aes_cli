@@ -13,6 +13,7 @@ Default: English 🇺🇸
 - Key via environment variable (`ENCIPHERR_KEY`) only
 - File encryption writes a new `.enc` file (does not overwrite original)
 - File decryption writes a new output file (auto-fallback to `.dec` when needed)
+- `--overwrite` flag to force-overwrite existing output files
 - Clear error messages for invalid key/cipher data
 
 ## Requirements
@@ -70,6 +71,13 @@ Result:
 - Preferred output: `/path/to/data.txt`
 - If `/path/to/data.txt` already exists, output becomes `/path/to/data.txt.dec`
 
+### Force overwrite existing output file
+Use `--overwrite` to overwrite an already-existing output file instead of aborting:
+```bash
+python3 encipherr.py encrypt file /path/to/data.txt --overwrite
+python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+```
+
 ## Command Help
 ```bash
 python3 encipherr.py -h
@@ -81,8 +89,8 @@ python3 encipherr.py decrypt -h
 ## CLI Syntax
 ```bash
 python3 encipherr.py genkey
-python3 encipherr.py encrypt {text|file} <input...>
-python3 encipherr.py decrypt {text|file} <input...>
+python3 encipherr.py encrypt {text|file} <input...> [--overwrite]
+python3 encipherr.py decrypt {text|file} <input...> [--overwrite]
 ```
 
 ## Self Test

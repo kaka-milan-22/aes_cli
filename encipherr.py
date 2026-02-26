@@ -18,7 +18,7 @@ from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-VERSION = "1.1.0"
+VERSION = "1.2.0"
 
 def get_key(args):
     """Get encryption key from environment variable only."""
@@ -169,7 +169,8 @@ def Encrypt(args):
                 sys.exit(1)       
             
             output_path = encrypted_output_path(path)
-            assert_output_not_exists(output_path)
+            if not getattr(args, 'overwrite', False):
+                assert_output_not_exists(output_path)
             encrypt_file_stream(path, output_path, raw_key)
             print("the file at ",path," is encrypted")
             print("encrypted output:", output_path)
@@ -216,7 +217,8 @@ def Decrypt(args):
                 sys.exit(1)
             
             output_path = decrypted_output_path(path)
-            assert_output_not_exists(output_path)
+            if not getattr(args, 'overwrite', False):
+                assert_output_not_exists(output_path)
             decrypt_file_stream(path, output_path, raw_key)
             print("the file at ",path," is decrypted")
             print("decrypted output:", output_path)
@@ -269,12 +271,14 @@ GenKey_parser.set_defaults(func=GenKey)
 Encrypt_parser = subparsers.add_parser('encrypt',help="encrypt mode input")
 Encrypt_parser.add_argument('mode',type=str,choices=['text','TEXT','file','FILE'],help="TEXT or FILE")
 Encrypt_parser.add_argument('input',type=str,nargs="+",help="A text if in text mode or path/to/file if in file mode")
+Encrypt_parser.add_argument('--overwrite', action='store_true', help="Overwrite output file if it already exists")
 Encrypt_parser.set_defaults(func=Encrypt)
 
 
 Decrypt_parser = subparsers.add_parser('decrypt',help="decrypt mode input")
 Decrypt_parser.add_argument('mode',type=str,choices=['text','TEXT','file','FILE'],help="TEXT or FILE")
 Decrypt_parser.add_argument('input',type=str,nargs="+",help="A text if in text mode or path/to/file if in file mode")
+Decrypt_parser.add_argument('--overwrite', action='store_true', help="Overwrite output file if it already exists")
 Decrypt_parser.set_defaults(func=Decrypt)
 
 def main(argv=None):
@@ -294,4 +298,5 @@ def main(argv=None):
 
 
 if __name__ == '__main__':
+    print("DEBUG BUILD ACTIVE")
     raise SystemExit(main())

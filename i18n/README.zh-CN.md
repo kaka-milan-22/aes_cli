@@ -10,6 +10,7 @@ Encipherr-CLI 是一个用于终端环境的本地加密/解密工具。
 - 仅支持通过环境变量 `ENCIPHERR_KEY` 提供密钥
 - 文件加密输出新的 `.enc` 文件（不覆盖原文件）
 - 文件解密输出新文件（必要时自动回退为 `.dec`）
+- `--overwrite` 参数：强制覆盖已存在的输出文件
 - 对无效密钥/密文提供清晰报错信息
 
 ## 运行要求
@@ -67,6 +68,13 @@ python3 encipherr.py decrypt file /path/to/data.txt.enc
 - 首选输出：`/path/to/data.txt`
 - 如果 `/path/to/data.txt` 已存在，则输出为 `/path/to/data.txt.dec`
 
+### 强制覆盖已存在的输出文件
+使用 `--overwrite` 参数，输出文件已存在时直接覆盖，而不是报错退出：
+```bash
+python3 encipherr.py encrypt file /path/to/data.txt --overwrite
+python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+```
+
 ## 命令帮助
 ```bash
 python3 encipherr.py -h
@@ -78,8 +86,8 @@ python3 encipherr.py decrypt -h
 ## CLI 语法
 ```bash
 python3 encipherr.py genkey
-python3 encipherr.py encrypt {text|file} <input...>
-python3 encipherr.py decrypt {text|file} <input...>
+python3 encipherr.py encrypt {text|file} <input...> [--overwrite]
+python3 encipherr.py decrypt {text|file} <input...> [--overwrite]
 ```
 
 ## 自测脚本
