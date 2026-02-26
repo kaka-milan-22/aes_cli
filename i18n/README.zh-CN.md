@@ -10,6 +10,7 @@ Encipherr-CLI 是一个用于终端环境的本地加密/解密工具。
 - 仅支持通过环境变量 `ENCIPHERR_KEY` 提供密钥
 - 文件加密输出新的 `.enc` 文件（不覆盖原文件）
 - 文件解密输出新文件（必要时自动回退为 `.dec`）
+- `--output PATH` / `-o PATH`：指定显式输出文件路径（仅文件模式）
 - `--overwrite` 参数：强制覆盖已存在的输出文件
 - 对无效密钥/密文提供清晰报错信息
 
@@ -75,6 +76,20 @@ python3 encipherr.py encrypt file /path/to/data.txt --overwrite
 python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
 ```
 
+### 指定输出路径（`--output` / `-o`）
+使用 `--output PATH`（或 `-o PATH`）可将结果写入指定路径，而非自动推导的文件名。
+若目标路径已存在，命令会报错退出——加上 `--overwrite` 可强制覆盖：
+```bash
+python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
+```
+
+**规则：**
+- `--output` 仅在**文件**模式下生效；文本模式中忽略。
+- 若指定 `--output` 且路径已存在，未加 `--overwrite` 时直接报错。
+- `--output` 不影响任何密文结构或密钥处理逻辑。
+
 ## 命令帮助
 ```bash
 python3 encipherr.py -h
@@ -86,8 +101,8 @@ python3 encipherr.py decrypt -h
 ## CLI 语法
 ```bash
 python3 encipherr.py genkey
-python3 encipherr.py encrypt {text|file} <input...> [--overwrite]
-python3 encipherr.py decrypt {text|file} <input...> [--overwrite]
+python3 encipherr.py encrypt {text|file} <input...> [--output PATH] [--overwrite]
+python3 encipherr.py decrypt {text|file} <input...> [--output PATH] [--overwrite]
 ```
 
 ## 自测脚本

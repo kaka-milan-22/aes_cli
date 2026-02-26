@@ -10,6 +10,7 @@ Encipherr-CLI ist ein lokales Verschluesselungs-/Entschluesselungs-Tool fuer die
 - Schluessel nur ueber Umgebungsvariable (`ENCIPHERR_KEY`)
 - Dateiverschluesselung erstellt neue `.enc` Datei (kein Ueberschreiben)
 - Dateientschluesselung erzeugt neue Ausgabedatei (falls noetig mit `.dec`)
+- `--output PATH` / `-o PATH`: Expliziter Ausgabepfad (nur Dateimodus)
 - `--overwrite`: Vorhandene Ausgabedatei erzwungen ueberschreiben
 
 ## Voraussetzungen
@@ -37,6 +38,11 @@ python3 encipherr.py decrypt file /path/to/data.txt.enc
 # Vorhandene Ausgabedatei erzwungen ueberschreiben
 python3 encipherr.py encrypt file /path/to/data.txt --overwrite
 python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+
+# Expliziter Ausgabepfad (--output / -o)
+python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
 ```
 
 ## Hilfe

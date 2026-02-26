@@ -13,6 +13,7 @@ Default: English 🇺🇸
 - Key via environment variable (`ENCIPHERR_KEY`) only
 - File encryption writes a new `.enc` file (does not overwrite original)
 - File decryption writes a new output file (auto-fallback to `.dec` when needed)
+- `--output PATH` / `-o PATH` to specify an explicit output file path (file mode only)
 - `--overwrite` flag to force-overwrite existing output files
 - Clear error messages for invalid key/cipher data
 
@@ -78,6 +79,20 @@ python3 encipherr.py encrypt file /path/to/data.txt --overwrite
 python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
 ```
 
+### Explicit output path (`--output` / `-o`)
+Use `--output PATH` (or `-o PATH`) to write the result to a specific path instead of the auto-derived name.
+If the path already exists the command aborts — add `--overwrite` to allow it:
+```bash
+python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
+```
+
+**Rules:**
+- `--output` is only honoured in **file** mode; ignored in text mode.
+- If `--output` is set and the path already exists, the command errors unless `--overwrite` is also set.
+- Using `--output` does not change the ciphertext format or key handling in any way.
+
 ## Command Help
 ```bash
 python3 encipherr.py -h
@@ -89,8 +104,8 @@ python3 encipherr.py decrypt -h
 ## CLI Syntax
 ```bash
 python3 encipherr.py genkey
-python3 encipherr.py encrypt {text|file} <input...> [--overwrite]
-python3 encipherr.py decrypt {text|file} <input...> [--overwrite]
+python3 encipherr.py encrypt {text|file} <input...> [--output PATH] [--overwrite]
+python3 encipherr.py decrypt {text|file} <input...> [--output PATH] [--overwrite]
 ```
 
 ## Self Test

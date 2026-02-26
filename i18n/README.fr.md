@@ -10,6 +10,7 @@ Encipherr-CLI est un outil local de chiffrement/dechiffrement pour le terminal.
 - Cle via variable d'environnement uniquement (`ENCIPHERR_KEY`)
 - Le chiffrement de fichier cree un nouveau fichier `.enc` (sans ecraser l'original)
 - Le dechiffrement cree un nouveau fichier de sortie (avec repli `.dec` si necessaire)
+- `--output PATH` / `-o PATH` : chemin de sortie explicite (mode fichier uniquement)
 - `--overwrite` : force l'ecrasement du fichier de sortie s'il existe deja
 
 ## Prerequis
@@ -37,6 +38,11 @@ python3 encipherr.py decrypt file /path/to/data.txt.enc
 # Ecraser de force un fichier de sortie existant
 python3 encipherr.py encrypt file /path/to/data.txt --overwrite
 python3 encipherr.py decrypt file /path/to/data.txt.enc --overwrite
+
+# Chemin de sortie explicite (--output / -o)
+python3 encipherr.py encrypt file /path/to/data.txt --output /tmp/encrypted.enc
+python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt
+python3 encipherr.py decrypt file /tmp/encrypted.enc --output /path/to/restored.txt --overwrite
 ```
 
 ## Aide

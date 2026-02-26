@@ -18,7 +18,7 @@ from cryptography.exceptions import InvalidTag
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 def get_key(args):
     """Get encryption key from environment variable only."""
@@ -161,15 +161,22 @@ def Encrypt(args):
             raw_key = decode_key(key)
             path = " ".join(args.input)
             print("specified path:",path)
-            
+
+            if path == "-" and args.output:
+                print("Error: --output cannot be used with stdin input '-'.")
+                sys.exit(1)
+
             if is_valid_file(path):
                 pass
             else:
                 print("Error in provided path !") 
                 sys.exit(1)       
             
-            output_path = encrypted_output_path(path)
-            if not getattr(args, 'overwrite', False):
+            if args.output:
+                output_path = args.output
+            else:
+                output_path = encrypted_output_path(path)
+            if not args.overwrite:
                 assert_output_not_exists(output_path)
             encrypt_file_stream(path, output_path, raw_key)
             print("the file at ",path," is encrypted")
@@ -209,15 +216,22 @@ def Decrypt(args):
             raw_key = decode_key(key)
             path = " ".join(args.input)
             print("specified path:",path)
-            
+
+            if path == "-" and args.output:
+                print("Error: --output cannot be used with stdin input '-'.")
+                sys.exit(1)
+
             if is_valid_file(path):
                 pass
             else:
                 print("Error in provided path !") 
                 sys.exit(1)
             
-            output_path = decrypted_output_path(path)
-            if not getattr(args, 'overwrite', False):
+            if args.output:
+                output_path = args.output
+            else:
+                output_path = decrypted_output_path(path)
+            if not args.overwrite:
                 assert_output_not_exists(output_path)
             decrypt_file_stream(path, output_path, raw_key)
             print("the file at ",path," is decrypted")
@@ -271,6 +285,7 @@ GenKey_parser.set_defaults(func=GenKey)
 Encrypt_parser = subparsers.add_parser('encrypt',help="encrypt mode input")
 Encrypt_parser.add_argument('mode',type=str,choices=['text','TEXT','file','FILE'],help="TEXT or FILE")
 Encrypt_parser.add_argument('input',type=str,nargs="+",help="A text if in text mode or path/to/file if in file mode")
+Encrypt_parser.add_argument('--output', '-o', metavar='PATH', help="Output file path (file mode only)")
 Encrypt_parser.add_argument('--overwrite', action='store_true', help="Overwrite output file if it already exists")
 Encrypt_parser.set_defaults(func=Encrypt)
 
@@ -278,6 +293,7 @@ Encrypt_parser.set_defaults(func=Encrypt)
 Decrypt_parser = subparsers.add_parser('decrypt',help="decrypt mode input")
 Decrypt_parser.add_argument('mode',type=str,choices=['text','TEXT','file','FILE'],help="TEXT or FILE")
 Decrypt_parser.add_argument('input',type=str,nargs="+",help="A text if in text mode or path/to/file if in file mode")
+Decrypt_parser.add_argument('--output', '-o', metavar='PATH', help="Output file path (file mode only)")
 Decrypt_parser.add_argument('--overwrite', action='store_true', help="Overwrite output file if it already exists")
 Decrypt_parser.set_defaults(func=Decrypt)
 
