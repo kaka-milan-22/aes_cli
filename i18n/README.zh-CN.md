@@ -20,24 +20,34 @@ Encipherr-CLI 是一个用于终端环境的本地加密/解密工具。
 
 ## 安装
 
+> **注意：** 本项目未发布至 PyPI，请从 GitHub 安装。
+
 **推荐（全局 CLI 工具）：**
 ```bash
-pip install encipherr-cli
+uv tool install git+https://github.com/kaka-milan-22/aes_cli.git
 ```
 
-或使用 [uv](https://github.com/astral-sh/uv)：
+**验证安装：**
 ```bash
-uv tool install encipherr-cli
+encipherr --help
 ```
 
 <details>
-<summary>从源码运行（开发用）</summary>
+<summary>开发者 / 本地安装</summary>
 
 ```bash
-pip install -r requirements.txt
-python3 encipherr.py ...
+git clone https://github.com/kaka-milan-22/aes_cli.git
+cd aes_cli
+uv tool install .
+# 或
+pip install -e .
 ```
 </details>
+
+**命名对照：**
+- CLI 命令：`encipherr`
+- Python 包名：`encipherr-cli`
+- 仓库名：`aes_cli`
 
 ## 快速开始
 ### 1. 生成密钥

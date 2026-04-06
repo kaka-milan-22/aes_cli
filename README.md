@@ -19,24 +19,34 @@ Default: English 🇺🇸
 
 ## Install
 
+> **Note:** This project is not published on PyPI. Install from GitHub instead.
+
 **Recommended (global CLI tool):**
 ```bash
-pip install encipherr-cli
+uv tool install git+https://github.com/kaka-milan-22/aes_cli.git
 ```
 
-Or with [uv](https://github.com/astral-sh/uv):
+**Verify installation:**
 ```bash
-uv tool install encipherr-cli
+encipherr --help
 ```
 
 <details>
-<summary>Run from source (development)</summary>
+<summary>Developer / local install</summary>
 
 ```bash
-pip install -r requirements.txt
-python3 encipherr.py ...
+git clone https://github.com/kaka-milan-22/aes_cli.git
+cd aes_cli
+uv tool install .
+# or
+pip install -e .
 ```
 </details>
+
+**Name mapping:**
+- CLI command: `encipherr`
+- Python package: `encipherr-cli`
+- Repository: `aes_cli`
 
 ## Quick Start
 ### 1. Generate key

@@ -19,15 +19,34 @@ Encipherr-CLI ist ein lokales Verschluesselungs-/Entschluesselungs-Tool fuer die
 
 ## Installation
 
+> **Hinweis:** Dieses Projekt ist nicht auf PyPI veröffentlicht. Bitte direkt von GitHub installieren.
+
 **Empfohlen (globales CLI-Tool):**
 ```bash
-pip install encipherr-cli
+uv tool install git+https://github.com/kaka-milan-22/aes_cli.git
 ```
 
-oder mit [uv](https://github.com/astral-sh/uv):
+**Installation prüfen:**
 ```bash
-uv tool install encipherr-cli
+encipherr --help
 ```
+
+<details>
+<summary>Entwickler / lokale Installation</summary>
+
+```bash
+git clone https://github.com/kaka-milan-22/aes_cli.git
+cd aes_cli
+uv tool install .
+# oder
+pip install -e .
+```
+</details>
+
+**Namens-Zuordnung:**
+- CLI-Befehl: `encipherr`
+- Python-Paket: `encipherr-cli`
+- Repository: `aes_cli`
 
 ## Schnellstart
 ```bash

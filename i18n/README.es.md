@@ -19,15 +19,34 @@ Encipherr-CLI es una herramienta local de cifrado/descifrado para terminal.
 
 ## Instalacion
 
+> **Nota:** Este proyecto no está publicado en PyPI. Instalar directamente desde GitHub.
+
 **Recomendado (herramienta CLI global):**
 ```bash
-pip install encipherr-cli
+uv tool install git+https://github.com/kaka-milan-22/aes_cli.git
 ```
 
-o con [uv](https://github.com/astral-sh/uv):
+**Verificar instalacion:**
 ```bash
-uv tool install encipherr-cli
+encipherr --help
 ```
+
+<details>
+<summary>Desarrollador / instalacion local</summary>
+
+```bash
+git clone https://github.com/kaka-milan-22/aes_cli.git
+cd aes_cli
+uv tool install .
+# o bien
+pip install -e .
+```
+</details>
+
+**Correspondencia de nombres:**
+- Comando CLI: `encipherr`
+- Paquete Python: `encipherr-cli`
+- Repositorio: `aes_cli`
 
 ## Inicio rapido
 ```bash
