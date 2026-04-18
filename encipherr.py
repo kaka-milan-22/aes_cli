@@ -274,7 +274,7 @@ def decrypt_cmd(args):
 
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
-    description=f"Encipherr-CLI {VERSION} (https://github.com/Oussama1403/Encipherr-CLI)",
+    description=f"Encipherr-CLI {VERSION} (https://github.com/kaka-milan-22/aes_cli.git)",
     epilog='Exemple:\n\n python3 encipherr.py genkey\n export ENCIPHERR_KEY="your_generated_key"\n python3 encipherr.py encrypt TEXT encipherr is awesome!\n python3 encipherr.py decrypt FILE path/to/file.enc\n\nan issue or a feature request ? contribute to the development of Encipherr-cli https://github.com/Oussama1403/Encipherr-CLI:)')
 parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
 subparsers = parser.add_subparsers()
