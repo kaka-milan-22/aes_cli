@@ -92,7 +92,50 @@ fi
 rm -f "$TV_ENC_FILE" "$TV_DEC_FILE"
 echo "      Test vector verified — ciphertext format unchanged."
 
-echo "[10/10] Cleaning up temporary test artifacts..."
+echo "[extra-1] Negative: file mode rejects multi-argument input..."
+ERR_LOG="$(mktemp /tmp/encipherr_selftest_err.XXXXXX)"
+if python3 encipherr.py encrypt file /tmp/nope_a.txt /tmp/nope_b.txt >/dev/null 2>"$ERR_LOG"; then
+  echo "Multi-arg guard failed: command should have errored."
+  cat "$ERR_LOG"
+  rm -f "$ERR_LOG"
+  exit 1
+fi
+if ! grep -q "expects exactly one path" "$ERR_LOG"; then
+  echo "Multi-arg guard failed: expected stderr message not found."
+  cat "$ERR_LOG"
+  rm -f "$ERR_LOG"
+  exit 1
+fi
+rm -f "$ERR_LOG"
+echo "      Multi-arg guard correctly rejected extra positional."
+
+echo "[extra-2] Negative: too-short text ciphertext is rejected..."
+ERR_LOG="$(mktemp /tmp/encipherr_selftest_err.XXXXXX)"
+SHORT_CIPHER="$(python3 -c "import base64,os; print(base64.urlsafe_b64encode(b'A' + os.urandom(19)).decode())")"
+if python3 encipherr.py decrypt text -- "$SHORT_CIPHER" >/dev/null 2>"$ERR_LOG"; then
+  echo "Short-cipher guard failed: command should have errored."
+  cat "$ERR_LOG"
+  rm -f "$ERR_LOG"
+  exit 1
+fi
+if ! grep -qi "invalid\|short" "$ERR_LOG"; then
+  echo "Short-cipher guard failed: expected stderr error message not found."
+  cat "$ERR_LOG"
+  rm -f "$ERR_LOG"
+  exit 1
+fi
+rm -f "$ERR_LOG"
+echo "      Short ciphertext correctly rejected via stderr."
+
+echo "[extra-3] Regression: no DEBUG BUILD ACTIVE leak on stdout..."
+DEBUG_OUT="$(python3 encipherr.py --version 2>/dev/null || true)"
+if echo "$DEBUG_OUT" | grep -q "DEBUG BUILD ACTIVE"; then
+  echo "Regression: DEBUG BUILD ACTIVE still appears on stdout."
+  exit 1
+fi
+echo "      No debug leak on --version."
+
+echo "[cleanup] Removing temporary test artifacts..."
 rm -f "$TEST_FILE" "$TEST_FILE.enc" "$TEST_FILE.dec"
 rm -f "$TEST_FILE2" "$CUSTOM_ENC" "$CUSTOM_DEC"
-echo "Self-test passed: text, file, --output, --overwrite guard, and test vector checks succeeded."
+echo "Self-test passed: text, file, --output, --overwrite guard, test vector, and negative checks succeeded."
