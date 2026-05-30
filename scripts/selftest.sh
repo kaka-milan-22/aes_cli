@@ -5,16 +5,16 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
 echo "[1/9] Generating a temporary AES-256 key..."
-KEY="$(python3 encipherr.py genkey | awk 'NF{line=$0} END{gsub(/^ +| +$/, "", line); print line}')"
+KEY="$(encipherr genkey | awk 'NF{line=$0} END{gsub(/^ +| +$/, "", line); print line}')"
 export ENCIPHERR_KEY="$KEY"
 echo "      Key generated and exported to ENCIPHERR_KEY for this test session."
 
 echo "[2/9] Encrypting a test text payload..."
-TEXT_CIPHER="$(python3 encipherr.py encrypt text "selftest_text" | grep -v -- '-----' | grep '\S' | tail -1)"
+TEXT_CIPHER="$(encipherr encrypt text "selftest_text" | grep -v -- '-----' | grep '\S' | tail -1)"
 echo "      Text encryption completed."
 
 echo "[3/9] Decrypting the test text payload..."
-TEXT_PLAIN="$(python3 encipherr.py decrypt text "$TEXT_CIPHER" | tail -n1)"
+TEXT_PLAIN="$(encipherr decrypt text "$TEXT_CIPHER" | tail -n1)"
 if [[ "$TEXT_PLAIN" != "selftest_text" ]]; then
   echo "Text test failed: decrypted text does not match the original."
   exit 1
@@ -24,8 +24,8 @@ echo "      Text round-trip verification passed."
 echo "[4/9] Encrypting and decrypting a temporary test file (default paths)..."
 TEST_FILE="$(mktemp /tmp/encipherr_selftest.XXXXXX)"
 printf "selftest_file_content" > "$TEST_FILE"
-python3 encipherr.py encrypt file "$TEST_FILE" >/dev/null
-python3 encipherr.py decrypt file "$TEST_FILE.enc" >/dev/null
+encipherr encrypt file "$TEST_FILE" >/dev/null
+encipherr decrypt file "$TEST_FILE.enc" >/dev/null
 
 if [[ ! -f "$TEST_FILE.dec" ]]; then
   echo "File test failed: decrypted file not found."
@@ -45,7 +45,7 @@ echo "[6/9] Testing --output flag: encrypt with explicit output path..."
 TEST_FILE2="$(mktemp /tmp/encipherr_selftest2.XXXXXX)"
 printf "selftest_output_flag" > "$TEST_FILE2"
 CUSTOM_ENC="$(mktemp -u /tmp/encipherr_custom.XXXXXX.enc)"
-python3 encipherr.py encrypt file "$TEST_FILE2" --output "$CUSTOM_ENC" >/dev/null
+encipherr encrypt file "$TEST_FILE2" --output "$CUSTOM_ENC" >/dev/null
 if [[ ! -f "$CUSTOM_ENC" ]]; then
   echo "--output encrypt test failed: output file not found at $CUSTOM_ENC"
   rm -f "$TEST_FILE2"
@@ -54,7 +54,7 @@ fi
 
 echo "[7/9] Testing --output flag: decrypt with explicit output path..."
 CUSTOM_DEC="$(mktemp -u /tmp/encipherr_custom_dec.XXXXXX)"
-python3 encipherr.py decrypt file "$CUSTOM_ENC" --output "$CUSTOM_DEC" >/dev/null
+encipherr decrypt file "$CUSTOM_ENC" --output "$CUSTOM_DEC" >/dev/null
 if [[ ! -f "$CUSTOM_DEC" ]]; then
   echo "--output decrypt test failed: output file not found at $CUSTOM_DEC"
   rm -f "$TEST_FILE2" "$CUSTOM_ENC"
@@ -68,21 +68,21 @@ fi
 echo "      --output round-trip verification passed."
 
 echo "[8/9] Testing --overwrite conflict guard: must error without --overwrite..."
-if python3 encipherr.py encrypt file "$TEST_FILE2" --output "$CUSTOM_ENC" >/dev/null 2>&1; then
+if encipherr encrypt file "$TEST_FILE2" --output "$CUSTOM_ENC" >/dev/null 2>&1; then
   echo "Overwrite guard test failed: should have errored but did not."
   rm -f "$TEST_FILE2" "$CUSTOM_ENC" "$CUSTOM_DEC"
   exit 1
 fi
 echo "      Overwrite guard correctly prevented silent clobber."
 
-echo "[9/10] Verifying fixed test vector (format regression guard)..."
+echo "[9/9] Verifying fixed test vector (format regression guard)..."
 # Pre-computed with key=32×0x00, nonce=12×0x01, plaintext='encipherr-test-vector'
 TV_KEY="AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
 TV_B64="AQEBAQEBAQEBAQEBEC6gAwrhHY8Qm5DjyFtRH9kGmDR9GrV769vYwQBPVSV/gtC3Iw=="
 TV_ENC_FILE="$(mktemp /tmp/encipherr_tv.XXXXXX.enc)"
 TV_DEC_FILE="$(mktemp -u /tmp/encipherr_tv_dec.XXXXXX)"
 python3 -c "import base64,sys; sys.stdout.buffer.write(base64.b64decode('$TV_B64'))" > "$TV_ENC_FILE"
-ENCIPHERR_KEY="$TV_KEY" python3 encipherr.py decrypt file "$TV_ENC_FILE" --output "$TV_DEC_FILE" >/dev/null
+ENCIPHERR_KEY="$TV_KEY" encipherr decrypt file "$TV_ENC_FILE" --output "$TV_DEC_FILE" >/dev/null
 TV_RESULT="$(cat "$TV_DEC_FILE")"
 if [[ "$TV_RESULT" != "encipherr-test-vector" ]]; then
   echo "Test vector failed: decrypted content mismatch (format regression?)."
@@ -94,7 +94,7 @@ echo "      Test vector verified — ciphertext format unchanged."
 
 echo "[extra-1] Negative: file mode rejects multi-argument input..."
 ERR_LOG="$(mktemp /tmp/encipherr_selftest_err.XXXXXX)"
-if python3 encipherr.py encrypt file /tmp/nope_a.txt /tmp/nope_b.txt >/dev/null 2>"$ERR_LOG"; then
+if encipherr encrypt file /tmp/nope_a.txt /tmp/nope_b.txt >/dev/null 2>"$ERR_LOG"; then
   echo "Multi-arg guard failed: command should have errored."
   cat "$ERR_LOG"
   rm -f "$ERR_LOG"
@@ -112,7 +112,7 @@ echo "      Multi-arg guard correctly rejected extra positional."
 echo "[extra-2] Negative: too-short text ciphertext is rejected..."
 ERR_LOG="$(mktemp /tmp/encipherr_selftest_err.XXXXXX)"
 SHORT_CIPHER="$(python3 -c "import base64,os; print(base64.urlsafe_b64encode(b'A' + os.urandom(19)).decode())")"
-if python3 encipherr.py decrypt text -- "$SHORT_CIPHER" >/dev/null 2>"$ERR_LOG"; then
+if encipherr decrypt text -- "$SHORT_CIPHER" >/dev/null 2>"$ERR_LOG"; then
   echo "Short-cipher guard failed: command should have errored."
   cat "$ERR_LOG"
   rm -f "$ERR_LOG"
@@ -127,8 +127,58 @@ fi
 rm -f "$ERR_LOG"
 echo "      Short ciphertext correctly rejected via stderr."
 
-echo "[extra-3] Regression: no DEBUG BUILD ACTIVE leak on stdout..."
-DEBUG_OUT="$(python3 encipherr.py --version 2>/dev/null || true)"
+echo "[extra-3] --bind-filename: rename-rejected after binding..."
+BF_FILE="$(mktemp /tmp/encipherr_bindfn.XXXXXX)"
+printf "bind-filename-payload" > "$BF_FILE"
+BF_ENC="${BF_FILE}.enc"
+BF_RENAMED="${BF_ENC}.renamed.enc"
+BF_DEC="${BF_FILE}.dec"
+ERR_LOG="$(mktemp /tmp/encipherr_selftest_err.XXXXXX)"
+
+# Encrypt with --bind-filename
+encipherr encrypt file "$BF_FILE" --bind-filename >/dev/null
+# Decrypt under the SAME filename — should succeed
+encipherr decrypt file "$BF_ENC" --bind-filename --output "$BF_DEC" >/dev/null
+if ! cmp -s "$BF_FILE" "$BF_DEC"; then
+  echo "bind-filename round-trip failed: content mismatch."
+  rm -f "$BF_FILE" "$BF_ENC" "$BF_DEC" "$ERR_LOG"
+  exit 1
+fi
+rm -f "$BF_DEC"
+
+# Rename the ciphertext file, decrypt should FAIL (AAD mismatch on basename)
+mv "$BF_ENC" "$BF_RENAMED"
+if encipherr decrypt file "$BF_RENAMED" --bind-filename --output "$BF_DEC" >/dev/null 2>"$ERR_LOG"; then
+  echo "bind-filename guard failed: renamed file should NOT decrypt."
+  rm -f "$BF_FILE" "$BF_RENAMED" "$BF_DEC" "$ERR_LOG"
+  exit 1
+fi
+if ! grep -q "filename does not match" "$ERR_LOG"; then
+  echo "bind-filename guard failed: expected 'filename does not match' in stderr, got:"
+  cat "$ERR_LOG"
+  rm -f "$BF_FILE" "$BF_RENAMED" "$BF_DEC" "$ERR_LOG"
+  exit 1
+fi
+
+# Without --bind-filename on decrypt of a bound file → also rejected (AAD mismatch).
+if encipherr decrypt file "$BF_RENAMED" --output "$BF_DEC" >/dev/null 2>"$ERR_LOG"; then
+  echo "bind-filename guard failed: missing --bind-filename should NOT decrypt a bound file."
+  rm -f "$BF_FILE" "$BF_RENAMED" "$BF_DEC" "$ERR_LOG"
+  exit 1
+fi
+
+# Text mode rejects --bind-filename
+if encipherr encrypt text "hello" --bind-filename >/dev/null 2>"$ERR_LOG"; then
+  echo "bind-filename guard failed: text mode should reject the flag."
+  rm -f "$BF_FILE" "$BF_RENAMED" "$BF_DEC" "$ERR_LOG"
+  exit 1
+fi
+
+rm -f "$BF_FILE" "$BF_RENAMED" "$BF_DEC" "$ERR_LOG"
+echo "      --bind-filename round-trip OK; rename rejected; flag-missing rejected; text-mode rejected."
+
+echo "[extra-4] Regression: no DEBUG BUILD ACTIVE leak on stdout..."
+DEBUG_OUT="$(encipherr --version 2>/dev/null || true)"
 if echo "$DEBUG_OUT" | grep -q "DEBUG BUILD ACTIVE"; then
   echo "Regression: DEBUG BUILD ACTIVE still appears on stdout."
   exit 1
