@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.3.7] 2026-06-05 — fix copyright holder name
+
+No functional change.
+
+### Chore
+
+- Corrected the copyright holder in `LICENSE` and README from `KK` to `KAKA` (1.3.6 used the wrong name).
+
 ## [1.3.6] 2026-06-05 — independent MIT license
 
 No functional change; ciphertext format and CLI behavior identical to 1.3.3.

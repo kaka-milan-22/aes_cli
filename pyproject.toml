@@ -1,6 +1,6 @@
 [project]
 name = "encipherr-cli"
-version = "1.3.6"
+version = "1.3.7"
 description = "A small AES-256-GCM file/text encryption CLI"
 readme = "README.md"
 license = { file = "LICENSE" }
