@@ -1,5 +1,13 @@
 # Change Log
 
+## [1.3.5] 2026-06-05 — drop upstream attribution links
+
+No functional change; on-disk ciphertext format and CLI behavior are identical to 1.3.3.
+
+### Chore
+
+- Removed the upstream fork's attribution/contribute references: the `# Made by` / `# Contribute:` header comments and the original web-app reference in `encipherr.py`, plus the trailing "contribute to the development of Encipherr-cli" line in the `--help` epilog.
+
 ## [1.3.3] 2026-06-05 — verify-before-write decryption
 
 On-disk ciphertext format unchanged; existing `.enc` files decrypt exactly as before.

@@ -1,9 +1,6 @@
 #!/usr/bin/python3
 
 # Encipherr-cli
-# CLI version of the open source web app encipherr. Visit https://encipherr.pythonanywhere.com/.
-# Made by Oussama Ben Sassi https://github.com/Oussama1403
-# Contribute: https://github.com/Oussama1403/Encipherr-CLI
 
 from __future__ import annotations
 
@@ -432,7 +429,7 @@ def decrypt_cmd(args: argparse.Namespace) -> None:
 parser = argparse.ArgumentParser(
     formatter_class=argparse.RawDescriptionHelpFormatter,
     description=f"Encipherr-CLI {VERSION} (https://github.com/kaka-milan-22/aes_cli.git)",
-    epilog='Example:\n\n encipherr genkey\n export ENCIPHERR_KEY="your_generated_key"\n encipherr encrypt TEXT encipherr is awesome!\n encipherr decrypt FILE path/to/file.enc\n\nNote: for inputs that start with a dash, use "--" to end argparse flag parsing:\n   encipherr encrypt text -- -starts-with-dash\n\nan issue or a feature request ? contribute to the development of Encipherr-cli https://github.com/Oussama1403/Encipherr-CLI:)')
+    epilog='Example:\n\n encipherr genkey\n export ENCIPHERR_KEY="your_generated_key"\n encipherr encrypt TEXT encipherr is awesome!\n encipherr decrypt FILE path/to/file.enc\n\nNote: for inputs that start with a dash, use "--" to end argparse flag parsing:\n   encipherr encrypt text -- -starts-with-dash')
 parser.add_argument("--version", action="version", version=f"%(prog)s {VERSION}")
 subparsers = parser.add_subparsers()
 
