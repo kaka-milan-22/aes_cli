@@ -150,6 +150,11 @@ This CLI uses:
 - No local nonce state files
 - Nonce uniqueness relies solely on secure randomness; this tool is intended for local and moderate usage, not high-frequency automated batch encryption.
 
+## Verify-before-write (decryption)
+Files at or below 64 MiB are decrypted **fully in memory**: the GCM tag is verified before any plaintext is written to disk, so a wrong key or a tampered ciphertext never lands unverified plaintext on the filesystem. Larger files fall back to streaming, where chunks are written to a temp file before the tag is checked at the end — on failure the temp file is removed and never replaces the target, but unverified plaintext does transiently exist on disk during the operation. Output is always staged through a `0600` temp file and `os.replace`'d into place atomically.
+
+The 64 MiB threshold is tunable per decrypt with `--inmem-max MIB`: `--inmem-max 0` always streams; a large value always verifies in memory (costing ~2x the file size in RAM). File mode only.
+
 ## Compatibility Notice
 This version uses AES-256-GCM format and is not compatible with older Fernet ciphertexts.
 This tool guarantees backward compatibility for ciphertexts generated within the same major version.

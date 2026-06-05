@@ -1,5 +1,22 @@
 # Change Log
 
+## [1.3.3] 2026-06-05 — verify-before-write decryption
+
+On-disk ciphertext format unchanged; existing `.enc` files decrypt exactly as before.
+
+### Security
+
+- **Verify-before-write for small files**: decryption of files at or below `INMEM_VERIFY_MAX` (64 MiB) now happens fully in memory — `AESGCM.decrypt` verifies the GCM tag *before* any plaintext is written to disk. Previously all files used the streaming path, which writes `decryptor.update()` output to a temp file before `finalize()` checks the tag, transiently landing unverified plaintext on disk (a "release of unverified plaintext" / RUP property). Files above the threshold still stream (verifying the whole file in memory would cost ~2x its size in RAM); the temp file is still removed on tag failure and never replaces the target. Encryption is unchanged (it has no RUP concern).
+- **`--inmem-max MIB` (new, decrypt only)**: override the in-memory verify threshold per invocation (default 64 MiB). `--inmem-max 0` forces the streaming path for all files; a large value forces verify-before-write regardless of size (at ~2x-file-size RAM cost). File mode only; text mode rejects the flag (text always decrypts in memory).
+
+### Fixes
+
+- Text-mode decrypt exception ordering: `except (binascii.Error, UnicodeEncodeError)` now precedes the bare `except ValueError`. `binascii.Error` is a `ValueError` subclass, so it was previously unreachable — malformed-base64 input got the generic "Invalid input format" message instead of "Cipher text must be base64 encoded." No security impact; error precision only.
+
+### Tests
+
+- Added `tests/test_inmemory_verify.py` (pytest): small-file round-trip (with and without AAD), large-file streaming round-trip, the core guarantee that a tampered small file is rejected **before any temp file is opened**, and the `--inmem-max` override / CLI wiring. Added `tests/test_text_mode_errors.py` for the base64 error-message ordering. `pyproject.toml` gains `[tool.pytest.ini_options] pythonpath = ["."]`.
+
 ## [1.3.2] 2026-05-31 — security + UX hardening from internal review
 
 On-disk ciphertext format unchanged unless `--bind-filename` is used; existing `.enc` files still decrypt as before.

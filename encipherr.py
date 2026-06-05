@@ -185,6 +185,52 @@ def encrypt_file_stream(
         raise
 
 
+# Files at or below this size decrypt fully in memory: the GCM tag is
+# verified BEFORE any plaintext is written to disk, so a wrong key or a
+# tampered ciphertext never lands unverified plaintext on the filesystem
+# (no "release of unverified plaintext"). Larger files fall back to the
+# streaming path, where update() output is written before finalize()
+# checks the tag — unavoidable without buffering the whole file. Peak
+# memory for the in-memory path is ~2x the file size.
+INMEM_VERIFY_MAX = 64 * 1024 * 1024  # 64 MiB
+
+
+def _atomic_write(output_path: str, data: bytes) -> None:
+    """Write `data` to output_path atomically via a fsync'd temp + os.replace."""
+    out_dir = os.path.dirname(output_path) or "."
+    tmp_path = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="wb", delete=False, dir=out_dir, prefix=".encipherr_tmp_") as tmp_file:
+            tmp_path = tmp_file.name
+            tmp_file.write(data)
+            tmp_file.flush()
+            os.fsync(tmp_file.fileno())
+        os.replace(tmp_path, output_path)
+    except Exception:
+        if tmp_path and os.path.exists(tmp_path):
+            os.remove(tmp_path)
+        raise
+
+
+def _decrypt_file_in_memory(
+    input_path: str,
+    output_path: str,
+    raw_key: bytes,
+    *,
+    aad: bytes | None = None,
+) -> None:
+    """Decrypt a whole file in memory, verifying the tag before any write.
+
+    decrypt_bytes() runs AESGCM.decrypt, which raises InvalidTag on a wrong
+    key / tampered data BEFORE we ever open the output temp file — so no
+    unverified plaintext reaches disk.
+    """
+    with open(input_path, "rb") as in_file:
+        blob = in_file.read()
+    plaintext = decrypt_bytes(blob, raw_key, aad)
+    _atomic_write(output_path, plaintext)
+
+
 def decrypt_file_stream(
     input_path: str,
     output_path: str,
@@ -192,12 +238,24 @@ def decrypt_file_stream(
     *,
     aad: bytes | None = None,
     chunk_size: int = 1024 * 1024,
+    inmem_max: int | None = None,
 ) -> None:
-    """Stream-decrypt file encoded as nonce(12) + ciphertext + tag(16)."""
+    """Decrypt file encoded as nonce(12) + ciphertext + tag(16).
+
+    Files at or below the in-memory threshold (in bytes) are verified in
+    memory before any write; larger files stream chunk-by-chunk. The
+    threshold is `inmem_max` when given, else the module default
+    INMEM_VERIFY_MAX.
+    """
     total_size = os.path.getsize(input_path)
     min_size = 12 + 16
     if total_size < min_size:
         raise ValueError("Cipher file is too short.")
+
+    threshold = INMEM_VERIFY_MAX if inmem_max is None else inmem_max
+    if total_size <= threshold:
+        _decrypt_file_in_memory(input_path, output_path, raw_key, aad=aad)
+        return
 
     out_dir = os.path.dirname(output_path) or "."
     tmp_path = None
@@ -315,7 +373,9 @@ def decrypt_cmd(args: argparse.Namespace) -> None:
             # match the basename used at encrypt time, else GCM raises
             # InvalidTag and we surface "Decryption failed".
             aad = _filename_aad(path) if args.bind_filename else None
-            decrypt_file_stream(path, output_path, raw_key, aad=aad)
+            # --inmem-max is given in MiB; convert to bytes. None -> module default.
+            inmem_max = args.inmem_max * 1024 * 1024 if args.inmem_max is not None else None
+            decrypt_file_stream(path, output_path, raw_key, aad=aad, inmem_max=inmem_max)
             print(f"Decrypted: {path} -> {output_path}")
         except ValueError:
             eprint("Error: Invalid input format. Key or cipher data is invalid.")
@@ -344,6 +404,10 @@ def decrypt_cmd(args: argparse.Namespace) -> None:
                 eprint("Error: --bind-filename is only valid in file mode "
                        "(text mode has no filename to bind to).")
                 sys.exit(1)
+            if args.inmem_max is not None:
+                eprint("Error: --inmem-max is only valid in file mode "
+                       "(text mode always decrypts in memory).")
+                sys.exit(1)
             raw_key = decode_key(key)
             value = " ".join(args.input)
             token = value.encode()
@@ -351,11 +415,14 @@ def decrypt_cmd(args: argparse.Namespace) -> None:
             decryptedtext = decrypt_bytes(cipher_bytes, raw_key)
             print('-' * 5, "decrypted text", '-' * 5)
             print(decryptedtext.decode())
-        except ValueError:
-            eprint("Error: Invalid input format. Key or cipher text is invalid.")
-            sys.exit(1)
+        # binascii.Error / UnicodeEncodeError are ValueError subclasses, so
+        # this specific clause MUST precede the bare `except ValueError` below
+        # — otherwise malformed-base64 input gets the generic message.
         except (binascii.Error, UnicodeEncodeError):
             eprint("Error: Cipher text must be base64 encoded.")
+            sys.exit(1)
+        except ValueError:
+            eprint("Error: Invalid input format. Key or cipher text is invalid.")
             sys.exit(1)
         except InvalidTag:
             eprint("Error: Decryption failed. Key is wrong or cipher text is invalid/corrupted.")
@@ -393,6 +460,10 @@ decrypt_parser.add_argument('--overwrite', action='store_true', help="Overwrite 
 decrypt_parser.add_argument('--bind-filename', action='store_true',
                              help="Require the GCM AAD to match the input file's basename "
                                   "(needed only for files encrypted with --bind-filename). (file mode only)")
+decrypt_parser.add_argument('--inmem-max', metavar='MIB', type=int, default=None,
+                            help="Max file size (in MiB) to decrypt fully in memory, where the GCM "
+                                 "tag is verified before any plaintext is written to disk. Larger "
+                                 "files stream. Default 64. Use 0 to always stream. (file mode only)")
 decrypt_parser.set_defaults(func=decrypt_cmd)
 
 
