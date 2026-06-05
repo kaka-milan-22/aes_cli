@@ -160,4 +160,4 @@ This version uses AES-256-GCM format and is not compatible with older Fernet cip
 This tool guarantees backward compatibility for ciphertexts generated within the same major version.
 
 ## License
-[MIT](https://choosealicense.com/licenses/mit/)
+[MIT](LICENSE) © 2026 KK

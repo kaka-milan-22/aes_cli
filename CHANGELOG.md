@@ -1,5 +1,14 @@
 # Change Log
 
+## [1.3.6] 2026-06-05 — independent MIT license
+
+No functional change; ciphertext format and CLI behavior identical to 1.3.3.
+
+### Chore
+
+- Added a standalone `LICENSE` file (MIT, © 2026 KK); README now links to it instead of a generic license URL.
+- `pyproject.toml`: set a real `description` and a `license = { file = "LICENSE" }` field (replacing the placeholder description).
+
 ## [1.3.5] 2026-06-05 — drop upstream attribution links
 
 No functional change; on-disk ciphertext format and CLI behavior are identical to 1.3.3.
